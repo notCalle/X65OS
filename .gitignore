@@ -1,0 +1,6 @@
+*.dmg
+*.bin
+*.srec
+*.o
+version.i65
+*.tmp

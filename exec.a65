@@ -1,0 +1,58 @@
+.p816
+.include "include/cpu.i65"
+
+.scope exec
+
+.segment "CODE"
+
+_tag:
+	.word _tag
+	.asciiz "EXEC"
+_idle:
+	cli
+	wai
+	bra _idle
+
+.segment "DATA"
+
+_systab:
+
+_syscall_max = (*-_systab)/2
+
+.segment "CODE"
+
+.export syscall
+; A = syscall#
+; B = 8 bit parameter
+; Y = 16 bit parameter
+syscall:
+	sep #CPU_M|CPU_X
+	.a8
+	.i8
+	cmp #_syscall_max
+	lsr
+	tax
+	xba
+	jmp (_systab,x)
+
+.export nmi
+nmi:
+	rti
+
+.export irq
+irq:
+	rti
+
+.export debug
+debug:
+	rti
+
+.export abort
+abort:
+	rti
+
+.export panic
+panic:
+	stp
+
+.endscope

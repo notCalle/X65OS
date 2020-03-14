@@ -1,0 +1,38 @@
+.import __DATA_LOAD__
+.import __DATA_RUN__
+.import __DATA_SIZE__
+.include "include/cpu.i65"
+.include "include/version.i65"
+.p816
+
+.segment "SYSINIT"
+
+	bra reset
+	.byte _major_version
+	.byte _minor_version
+	.byte "X65OS ROM BIOS "
+	.asciiz _git_version
+	.asciiz "Copyright (c) 2020 Calle Englund"
+
+.export reset
+reset:
+	sei
+	; Native mode
+	clc
+	xce
+	; 16-bit registers
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
+	; Reset direct page to page 0
+	lda #$0000
+	tcd
+	; Reset stack pointer to page 1
+	lda #$0200
+	tcs
+
+	; Initialize DATA segment
+	ldx #__DATA_LOAD__
+	ldy #__DATA_RUN__
+	lda #__DATA_SIZE__
+	mvn $00,$00

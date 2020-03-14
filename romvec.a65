@@ -1,0 +1,26 @@
+.import abort
+.import debug
+.import irq
+.import nmi
+.import panic
+.import reset
+.import syscall
+
+.segment "VECTORS"
+
+	; Native mode vectors
+	.word syscall	; $FFE4 COP
+	.word debug		; $FFE6 BRK
+	.word abort		; $FFE8 /ABORT
+	.word nmi		; $FFEA /NMI
+	.word $ffff
+	.word irq		; $FFEE /IRQ
+
+	; Emulation mode vectors
+	.res 4, $ff
+	.word panic		; $FFF4 COP
+	.word panic		; $FFF6 BRK
+	.word panic		; $FFF8 /ABORT
+	.word panic		; $FFFA /NMI
+	.word reset		; $FFFC /RESET
+	.word panic		; $FFFE /IRQ

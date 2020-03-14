@@ -1,0 +1,8 @@
+.define CPU_C %00000001	; Carry
+.define CPU_Z %00000010	; Zero
+.define CPU_I %00000100	; IRQ 1 = Disabled
+.define CPU_D %00001000	; 1 = Decimal, 0 = Binary
+.define CPU_X %00010000	; Index Size 1 = 8-bit, 0 = 16-bit
+.define CPU_M %00100000	; A/mem Size 1 = 8-bit, 0 = 16-bit
+.define CPU_V %01000000	; Overflow
+.define CPU_N %10000000	; Negative

@@ -1,0 +1,3 @@
+.define _major_version 0
+.define _minor_version 1
+.define _git_version "__GIT_VERSION__"
