@@ -1,17 +1,22 @@
 .import __DATA_LOAD__
 .import __DATA_RUN__
 .import __DATA_SIZE__
+.import __BSS_LOAD__
+.import __BSS_SIZE__
 .include "include/cpu.i65"
 .include "include/version.i65"
+.include "include/syszp.i65"
 .p816
 
 .segment "SYSINIT"
 
-	bra reset
-	.byte _major_version
+	jmp reset
+.export version
+version:
 	.byte _minor_version
+	.byte _major_version
 	.byte "X65OS ROM BIOS "
-	.asciiz _git_version
+	.byte _git_version, 13, 10
 	.asciiz "Copyright (c) 2020 Calle Englund"
 
 .export reset
@@ -28,11 +33,111 @@ reset:
 	lda #$0000
 	tcd
 	; Reset stack pointer to page 1
-	lda #$0200
+	lda #$01ff
 	tcs
 
-	; Initialize DATA segment
+; Find the size of low ram ($000000 - $00BFFF)
+.scope loramsize
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
+	stz syszp::loramtop
+	ldx #$0200
+	stx syszp::loram
+loop:
+	lda syszp::loramtop,x
+	tay
+	txa
+	sta syszp::loramtop,x
+	cmp syszp::loramtop
+	beq exit
+	tya
+	sta syszp::loramtop,x
+	txa
+	sta syszp::loramtop
+	clc
+	adc syszp::loramtop
+	bcs maxsize
+	tax
+	bra loop
+maxsize:
+	; I/O region starts here, followed by ROM
+	lda #$c000
+	sta syszp::loramtop
+exit:
+	; Highest available address
+	dec syszp::loramtop
+.endscope
+
+; Find the size of high ram ($010000 - $FFFFFF)
+.scope hiramsize
+	rep #CPU_M
+	.a16
+	stz syszp::hiram
+	stz syszp::hiramtop
+	sep #CPU_M|CPU_X
+	.a8
+	.i8
+	lda #$01
+	sta syszp::hiram+2
+	ldy #syszp::hiramtop+2
+loop:
+	sta syszp::hiramtop+2
+	xba
+	lda [syszp::hiramtop],y
+	xba
+	ina
+	bcs maxsize
+	sta [syszp::hiramtop],y
+	cmp syszp::hiramtop+2
+	beq exit
+	xba
+	sta [syszp::hiramtop],y
+	xba
+	bra loop
+maxsize:
+	; WOW we have the full 16 Megs of RAM!
+	sta syszp::hiramtop+2
+exit:
+	; Incremented one too high in detection
+	dec syszp::hiramtop+2
+	; Highest available address
+	dec syszp::hiramtop
+	dec syszp::hiramtop+1
+	dec syszp::hiramtop+2
+.endscope
+
+; Initialize system DATA segment
+.scope initdata
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
 	ldx #__DATA_LOAD__
 	ldy #__DATA_RUN__
-	lda #__DATA_SIZE__
+	lda #__DATA_SIZE__-1
 	mvn $00,$00
+	sty syszp::loram
+.endscope
+
+; Initialize system BSS segment
+.scope initbss
+	sep #CPU_M
+	rep #CPU_X
+	.a8
+	.i16
+	lda #$00
+	ldy #__BSS_SIZE__
+	beq nobss
+	dey
+loop:
+	sta (syszp::loram),y
+	dey
+	bcs loop
+	rep #CPU_M
+	.a16
+	clc
+	lda syszp::loram
+	adc #__BSS_SIZE__
+	sta syszp::loram
+nobss:
+.endscope
