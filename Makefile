@@ -10,6 +10,10 @@ TARGETS += rom.bin
 rom.bin: $(ROMSRC) rom.cfg include/version.i65
 	cl65 -C rom.cfg -t none -o $@ $(ROMSRC)
 
+TARGETS += rom.h
+rom.h: rom.bin
+	hexdump -v -e '16/1 "0x%02x," "\n"' $< >$@
+
 _git_version = $(shell git describe --always)
 TARGETS += include/version.i65
 include/version.i65: include/version.tmp

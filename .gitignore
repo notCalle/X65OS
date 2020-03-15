@@ -4,3 +4,4 @@
 *.o
 version.i65
 *.tmp
+rom.h
