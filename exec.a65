@@ -1,11 +1,13 @@
-.p816
+.import reset
 .include "include/cpu.i65"
+.p816
 
 .scope exec
 
 .segment "CODE"
 
 _tag:
+	brk
 	.word _tag
 	.asciiz "EXEC"
 _idle:
@@ -16,6 +18,7 @@ _idle:
 .segment "DATA"
 
 _systab:
+	.addr reset
 
 _syscall_max = (*-_systab)/2
 
@@ -45,14 +48,28 @@ irq:
 
 .export debug
 debug:
-	rti
 
 .export abort
 abort:
-	rti
 
 .export panic
 panic:
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
+	pha
+	phx
+	phy
+	phd
+	phb
+	tsx
+	stx $10
+	lda #$adde
+	sta $0a
+	lda #$efbe
+	sta $0c
+	lda #$feca
+	sta $0e
 	stp
 
 .endscope

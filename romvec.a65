@@ -19,7 +19,7 @@
 	; Emulation mode vectors
 	.res 4, $ff
 	.word panic		; $FFF4 COP
-	.word panic		; $FFF6 BRK
+	.word $ffff
 	.word panic		; $FFF8 /ABORT
 	.word panic		; $FFFA /NMI
 	.word reset		; $FFFC /RESET
