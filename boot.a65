@@ -1,0 +1,103 @@
+.include "include/syscall.i65"
+.p816
+
+sectors_per_cluster = 128
+root_dirents = 256
+sectors_per_fat = 15
+reserved = 1
+.scope VBR						; Volume Boot Record
+	.org $0200
+_boot:
+	xba							; $EB FAT signature
+	bra boot
+	.byte "X65OS 01"			; 8 bytes OEM Name
+bps:
+	.word 512					; Bytes per logical sector
+spc:
+	.byte sectors_per_cluster	; Sectors per cluster
+res:
+	.word reserved				; Reserved sectors
+nfat:
+	.byte 1						; Number of FATs
+rent:
+	.word root_dirents			; Max root dirents
+	.word 0						; Total sectors
+	.byte $f0					; Media descriptor
+fatsec:
+	.word sectors_per_fat		; Sectors
+	.word 31					; Sectors per track
+	.word 8						; Number of heads
+	.dword 0					; Hidden sectors
+fat_clusters = sectors_per_fat*(256*sectors_per_cluster+1)
+totsec:
+	.dword reserved+fat_clusters+root_dirents/16	; Total logical sectors
+	.byte 0						; Physical drive number
+	.byte 0						; Reserved
+	.byte $29					; $29 Extended FAT signature
+	.dword $12345678			; Volume ID
+label:
+	.byte "X65OS Boot "			; 11 bytes volume label
+	.byte "FAT16   "			; 8 bytes file system type
+boot:
+	sys async
+	sys await
+	rts
+
+	.res _boot+$01fe-*
+sign:
+	.word $AA55					; VBR signature
+.endscope
+
+.scope FAT
+	.word $FFF0
+	.word $FFFF
+	.word $FFFF
+	.res 512*15-6, $00
+.endscope
+
+.struct DIRENT
+	name	.res 8
+	ext		.res 3
+	fattr	.byte
+	uattr	.byte
+	ctimms	.byte
+	ctime	.word
+	cdata	.word
+	adate	.word
+	perm	.word
+	mtime	.word
+	mdate	.word
+	clust	.word
+	size	.dword
+.endstruct
+
+.scope ROOTDIR
+	.byte "X65OS Boot "
+	.byte $08		; VOLUMELABEL
+	.byte $00
+	.byte $00
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0000
+	.dword $00000000
+
+	.byte "KERNEL  X65"
+	.byte $05		; SYSTEM|READONLY
+	.byte $00
+	.byte $00
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0000
+	.word $0002
+	.dword $00010000
+
+	.res (256-2)*32
+.endscope
+
