@@ -1,0 +1,32 @@
+; #####################################################################
+;
+; 65C22 VIA B
+;
+; Base address is $00D400
+;
+; #####################################################################
+
+.struct VIAB
+		.org $00D400	; Read				/	Write
+drb 	.byte			; Input Register B	/	Output Register B
+dra 	.byte			; Input Register A	/	Output Register A
+ddrb	.byte			; Data Direction Register B
+ddra	.byte			; Data Direction Register A
+t1cl	.byte			; T1 counter LSB	/	T1 latches LSB
+t1ch	.byte			; T1 counter MSB (R/W)
+t1ll	.byte			; T1 latches LSB
+t1lh	.byte			; T1 latches MSB
+t2cl	.byte			; T2 counter LSB	/ 	T2 latches LSB
+t2ch	.byte			; T2 counter MSB
+sr		.byte			; Shift register
+acr		.byte			; Auxillary Control Register
+pcr		.byte			; Peripheral Control Register
+ifr		.byte			; Interrupt Flag Register
+ier		.byte			; Interrupe Enable Register
+drax	.byte			; I/O Register A without handshake
+
+		.org drb
+miso	.byte			; SPI Master In, Slave Out
+		.org sr
+mosi	.byte			; SPI Master Out, Slave In
+.endstruct
