@@ -1,0 +1,180 @@
+.import __DATA_LOAD__
+.import __DATA_RUN__
+.import __DATA_SIZE__
+.import __BSS_LOAD__
+.import __BSS_SIZE__
+.include "include/cpu.i65"
+.include "include/errno.i65"
+.include "include/_syscall.i65"
+.include "include/syszp.i65"
+.p816
+
+.segment "SYSINIT"
+
+; Find the size of low ram ($000000 - $00BFFF)
+.scope loramsize
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
+	ldx #$0200
+	stx syszp::loram
+loop:
+	lda syszp::loramtop,x
+	tay
+	txa
+	sta syszp::loramtop,x
+	cmp syszp::loramtop
+	beq exit
+	tya
+	sta syszp::loramtop,x
+	txa
+	sta syszp::loramtop
+	asl
+	bcs maxsize
+	tax
+	bra loop
+maxsize:
+	; I/O region starts here, followed by ROM
+	lda #$8000 ; will be $c000 with proper address decoding
+	sta syszp::loramtop
+exit:
+.endscope
+
+; Find the size of high ram ($010000 - $FFFFFF)
+.scope hiramsize
+	rep #CPU_M
+	.a16
+	sep #CPU_M|CPU_X
+	.a8
+	.i8
+	lda #$01
+	sta syszp::hiram+2
+	ldy #syszp::hiramtop+2
+loop:
+	sta syszp::hiramtop+2
+	xba
+	lda [syszp::hiramtop],y
+	xba
+	ina
+	bcs maxsize
+	sta [syszp::hiramtop],y
+	cmp syszp::hiramtop+2
+	beq exit
+	xba
+	sta [syszp::hiramtop],y
+	xba
+	bra loop
+maxsize:
+	; WOW we have the full 16 Megs of RAM!
+	sta syszp::hiramtop+2
+exit:
+	; Incremented one too high in detection
+	dec syszp::hiramtop+2
+.endscope
+
+; Initialize system DATA segment
+.scope initdata
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
+	ldx #__DATA_LOAD__
+	ldy #__DATA_RUN__
+	lda #__DATA_SIZE__
+	beq nodata
+	dea
+	mvn $00,$00
+nodata:
+	sty syszp::loram
+
+.endscope
+
+; Initialize system BSS segment
+.scope initbss
+	sep #CPU_M
+	rep #CPU_X
+	.a8
+	.i16
+	lda #$00
+	ldy #__BSS_SIZE__
+	beq nobss
+	dey
+loop:
+	sta (syszp::loram),y
+	dey
+	bcs loop
+	rep #CPU_M
+	.a16
+	clc
+	lda syszp::loram
+	adc #__BSS_SIZE__
+	sta syszp::loram
+nobss:
+.endscope
+
+.segment "CODE"
+
+.scope allocLoBytes
+; Stack frame
+.struct sf
+		.tag syscall_sf
+bytes	.word
+.endstruct
+
+; Arguments:
+;   # of bytes to allocate
+; Return:
+;   C = pointer to first byte
+.export allocLoBytes
+allocLoBytes:
+	.a16
+	.i16
+	lda sf::bytes,s
+	beq @eoutofrange
+	clc
+	adc syszp::loram
+	bcs @enomem
+	dea
+	cmp syszp::loramtop
+	bcs @enomem
+	ina
+	sta syszp::loram
+	sysreturn
+@enomem:
+	syserror ENOMEMORY
+@eoutofrange:
+	syserror EOUTOFRANGE
+.endscope
+
+.scope allocLoPage
+; Stack frame
+.struct sf
+		.tag syscall_sf
+pages	.word
+.endstruct
+
+; Arguments:
+;   # of pages to allocate
+; Return:
+;   C = pointer to first byte
+.export allocLoPages
+allocLoPages:
+	.a16
+	.i16
+	lda sf::pages,s
+	beq @eoutofrange
+	xba
+	; Reverse subtract
+	eor #$ffff
+	sec
+	adc syszp::loramtop
+	bcc @enomem
+	cmp syszp::loram
+	bcc @enomem
+	sta syszp::loramtop
+	sysreturn
+@enomem:
+	syserror ENOMEMORY
+@eoutofrange:
+	syserror EOUTOFRANGE
+.endscope
+

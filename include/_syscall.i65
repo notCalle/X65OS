@@ -1,0 +1,27 @@
+.include "syscall.i65"
+
+.struct syscall_sf
+		.byte ; <- S
+reg_d	.word
+reg_p	.byte
+rti_pc	.faraddr
+.endstruct
+
+.macro sysreturn
+	pld
+	plp
+	clc
+@return:
+	php
+	rti
+@error:
+	pld
+	plp
+	sec
+	bra @return
+.endmacro
+
+.macro syserror errno
+	lda #errno
+	bra @error
+.endmacro

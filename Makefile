@@ -1,4 +1,6 @@
 ROMSRC = _sysinit.a65	# MUST BE FIRST
+ROMSRC += _systab.a65
+ROMSRC += memory.a65
 ROMSRC += exec.a65
 ROMSRC += romvec.a65
 

@@ -1,42 +1,34 @@
-.import reset
+.import _systab
 .include "include/cpu.i65"
+.include "include/errno.i65"
+.include "include/syscall.i65"
 .p816
 
 .scope exec
 
 .segment "CODE"
 
-_tag:
-	brk
-	.word _tag
-	.asciiz "EXEC"
-_idle:
-	cli
-	wai
-	bra _idle
-
-.segment "DATA"
-
-_systab:
-	.addr reset
-
-_syscall_max = (*-_systab)/2
-
-.segment "CODE"
-
 .export syscall
-; A = syscall#
-; B = 8 bit parameter
-; Y = 16 bit parameter
+; C = syscall#
 syscall:
-	sep #CPU_M|CPU_X
-	.a8
-	.i8
-	cmp #_syscall_max
-	lsr
+	; Caller must ensure this!
+	.a16
+	.i16
+	cmp #syscall::__max
+	bcs @enosys
+	asl
 	tax
-	xba
+	; Switch to system direct page, saving the current task on stack
+	phd
+	lda #$0000
+	tcd
 	jmp (_systab,x)
+@enosys:
+	lda #ENOSYSCALL
+	plp
+	sec
+	php
+	rti
 
 .export nmi
 nmi:
@@ -53,6 +45,10 @@ debug:
 abort:
 
 .export panic
+; Dump CPU state on the stack, and set crash signature for hardware debugger
+; before stopping the CPU, waiting for external ~RESET.
+;
+; FIXME: Enter machine monitor when we have a working console device.
 panic:
 	rep #CPU_M|CPU_X
 	.a16
@@ -71,5 +67,4 @@ panic:
 	lda #$feca
 	sta $0e
 	stp
-
 .endscope

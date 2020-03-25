@@ -1,0 +1,7 @@
+.enum
+ENOSYSCALL			; No such syscall
+ENOTIMPLEMENTED		; Not implemented
+EOUTOFRANGE			; Parameter is out of defined range
+ENOMEMORY			; Not enough memory
+ETRYAGAIN			; Try again later
+.endenum

@@ -1,10 +1,12 @@
 ; System Zero Page
 .struct syszp
 			.org $00
-			; One above the highest available address
 loram		.addr
 loramtop	.addr
 hiram		.faraddr
 hiramtop	.faraddr
-
+runq_head	.byte
+runq_tail	.byte
+wait_head	.byte
+wait_tail	.byte
 .endstruct

@@ -1,0 +1,47 @@
+; N.B: This enum must be carefully matched with _systab
+.enum syscall
+;; Allocate consecutive bytes in low memory
+;
+; Arguments: 1
+;	# of bytes to allocate
+; Returns:
+;	C = pointer to first byte
+; Errors:
+;	ENOMEMORY if enough memory cannot be allocated
+
+	allocLoBytes
+
+;; Allocate consecutive pages in low memory
+;
+; Arguments: 1
+;	# of pages to allocate
+; Returns:
+;	C = pointer to first page
+; Errors:
+;	ENOMEMORY if enough memory cannot be allocated
+
+	allocLoPages
+
+; Errors:
+;	ENOSYSCALL no more syscalls exist
+	__max
+.endenum
+
+; Syscalls will trash all your registers, and set both sizes to 16 bits.
+; Make sure you save what you need before calling. Arguments are
+; always 16 bits, passed on the stack.
+;
+; On error the C flag is set, and C register contains errno
+; On success the C flag is cleared, and C register contains result
+.macro sys callno, argc
+	rep #CPU_M|CPU_X|CPU_C
+	.a16
+	.i16
+	lda #syscall::callno
+	cop $00
+.ifnblank argc
+	.repeat argc
+	plx
+	.endrepeat
+.endif
+.endmacro

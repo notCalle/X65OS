@@ -1,0 +1,12 @@
+.autoimport +
+
+.segment "DATA"
+
+;; System call dispatch table
+;
+; N.B: This table must be carefully matched with the include/syscall.i65 enum
+;
+.export _systab
+_systab:
+	.addr allocLoBytes
+	.addr allocLoPages
