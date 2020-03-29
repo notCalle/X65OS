@@ -45,21 +45,36 @@ loop:
 	bpl loop
 .endscope
 
+.scope idle
+
 .segment "CODE"
 
-.scope idle
-	pea $1000
-	sys allocLoBytes
-	bcs error
-	ply
-	pea $f000
-	sys allocLoBytes
-	bcs error
-	ply
-idle:
-	cli
-	stp				; Should be wai, but we have no interrupt sources yet
-	bra idle
-error:
+	pea task
+	sys async, 1
+	; Should never return, unless something went really wrong
 	brk
+
+; The IDLE task
+.segment "RODATA"
+
+task:
+	.asciiz "IDLE TASK  "	; Task name
+	.byte 0					; # of stack pages
+	.byte $00				; starting data bank
+	.word $0000				; starting Y
+	.word $0000				; starting X
+	.word $0000				; starting C
+	.byte %00000000			; starting P
+	.faraddr start			; starting PB:PC
+
+.segment "CODE"
+
+start:
+	rep #CPU_M|CPU_X|CPU_I
+	.a16
+	.i16
+loop:
+	stp				; Should be wai, but we have no interrupt sources yet
+	bra loop
+
 .endscope
