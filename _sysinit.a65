@@ -28,8 +28,8 @@ reset:
 	; Reset direct page to page 0
 	lda #$0000
 	tcd
-	; Reset stack pointer to page 1
-	lda #$01ff
+	; Reset stack pointer to page 0
+	lda #$00ff
 	tcs
 
 ; Clear syszp and systk pages
