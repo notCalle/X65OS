@@ -58,13 +58,14 @@ panic:
 	phy
 	phd
 	phb
-	tsx
-	stx $10
+	tsc
+	; These must use far addressing mode, because everything is unknown
+	sta f:$80
 	lda #$adde
-	sta $0a
+	sta f:$7a
 	lda #$efbe
-	sta $0c
+	sta f:$7c
 	lda #$feca
-	sta $0e
+	sta f:$7e
 	stp
 .endscope
