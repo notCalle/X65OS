@@ -1,0 +1,7 @@
+.struct taskzp
+next	.byte
+prev	.byte
+sp		.addr
+name	.byte 11		; Matching 8.3 FAT file name
+zero	.byte
+.endstruct

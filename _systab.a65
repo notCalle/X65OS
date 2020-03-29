@@ -10,3 +10,5 @@
 _systab:
 	.addr allocLoBytes
 	.addr allocLoPages
+	.addr async
+	.addr await

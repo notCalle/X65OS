@@ -22,6 +22,39 @@
 
 	allocLoPages
 
+;; Start an asynchonous task
+;
+; Arguments: 1
+;	pointer to .struct task
+; Returns:
+;	C = task id
+; Errors:
+;	ENOMEMORY if taskzp + stkpages cannot be allocated
+
+	async
+
+;; Wait for an asynchronous task to finish
+;
+; Arguments: 1
+;	task id
+; Returns:
+;	C = return value from task
+; Errors:
+;	error value from task
+
+	await
+
+;; Poll for status of an asynchronous task
+;
+; Arguments: 1
+;	task id
+; Returns:
+;	C = task id
+; Errors:
+;	ETRYAGAIN if the task has not finished
+
+	apoll
+
 ; Errors:
 ;	ENOSYSCALL no more syscalls exist
 	__max

@@ -1,0 +1,16 @@
+; This struct is carefully crafted to make sure the byte
+; before stkpages is always zero, and also provides a handy
+; zero termination of the task name string.
+.struct task
+name		.byte 11		; Task name
+_zero		.byte			; Must be zero
+stkpages	.byte			; # of stack pages
+
+; The following must match .struct task_sf in task.a65
+db_reg		.byte			; starting data bank
+y_reg		.word			; starting Y
+x_reg		.word			; starting X
+a_reg		.word			; starting C
+p_reg		.byte			; starting P
+entrypoint	.faraddr		; starting PB:PC
+.endstruct

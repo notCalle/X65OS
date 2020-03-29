@@ -1,0 +1,152 @@
+.include "include/cpu.i65"
+.include "include/errno.i65"
+.include "include/_syscall.i65"
+.include "include/syszp.i65"
+.include "include/task.i65"
+.include "include/taskzp.i65"
+.p816
+
+; Stack frame
+.struct sf
+		.tag syscall_sf
+taskptr	.word
+.endstruct
+
+.struct task_sf
+		.byte ; <- s
+db_reg	.byte
+y_reg	.word
+x_reg	.word
+a_reg	.word
+p_reg	.byte
+pc_reg	.word
+pb_reg	.byte
+.endstruct
+
+.scope async
+;; Start an asynchronous task
+;
+; If there was no running task, that means we're the first task to run
+; after boot, and this syscall will never return to the caller.
+;
+; In all other cases the new task will be enqueued at the tail of the
+; runnable tasks queue, and the task id (high byte of taskzp) is returned.
+;
+; Arguments:
+;   pointer to .struct task
+; Returns:
+;   C = task id
+.export async
+async:
+	.a16
+	.i16
+	cli
+	lda sf::taskptr,s
+	tax
+	; This relies on careful crafting of the .struct task to ensure
+	; that the byte before stkpages is always zero, so we can load.
+	lda task::stkpages-1,x
+	pha
+	xba
+	; Add one page for taskzp. If stkpages is zero, the stack shares
+	; that page, and will be very small indeed.
+	ina
+	pha
+	sys allocLoPages,1
+	bcs _error
+
+	; Keep taskzp pointer in X
+	tax
+	; No clc needed because bcs above guarantees C=0 when we get here.
+	adc #$ff
+	adc 1,s
+	ply
+
+	; Copy initial register values from .struct task to new stack
+	tay ; MVP destination
+	lda sf::taskptr,s
+	phx
+		; No clc because there should be no carry at this point
+		adc #task::entrypoint+2 ; last byte of .struct task
+		tax ; MVP source
+		lda #task::entrypoint+2-task::db_reg
+		mvp $00,$00
+	plx
+	sty taskzp::sp,x
+
+	; Copy task name
+	phx
+		lda sf::taskptr+2,s
+		tax
+		lda 1,s
+		adc #taskzp::name
+		tay
+		lda #task::_zero-task::name
+		mvn $00,$00
+	plx
+
+;; Enqueue a task at the tail of runnable task queue
+;
+; Arguments:
+;	X = task ptr ($tt00)
+; Returns:
+;	Never returns to caller
+_enqueue_task:
+	.a16
+	.i16
+	; START CRITICAL SECTION
+	sei
+	; This loads the head in A, and tail in B
+	; Both will be zero if the queue is empty
+	lda syszp::runq_head
+	beq @empty
+
+	; Clear out the head part from A
+	; $BB00 = tail taskzp pointer
+	and #$ff00
+	; and store A,B at new taskzp::next,prev
+	sta taskzp::next,x
+	txy				; Y = new taskzp
+	tax				; X = tail taskzp
+	tya
+	xba
+	sep #CPU_M
+	.a8
+	sta taskzp::next,x
+	sta syszp::runq_tail
+	sysreturn
+
+; No next or previous task in queue
+@empty:
+	.a16
+	.i16
+	stz taskzp::next,x
+	txa
+	xba
+	sep #CPU_M
+	.a8
+	sta syszp::runq_head
+	sta syszp::runq_tail
+	rep #CPU_M
+	.a16
+	; Switch task
+	phx
+	pld
+	; Direct page is now in task context
+	ldx taskzp::sp
+	txs
+	; Pull task registers
+	plb
+	ply
+	plx
+	pla
+	rti
+
+_error = @error
+.endscope
+
+.export await
+await:
+	.a16
+	syserror ENOTIMPLEMENTED
+	sysreturn
