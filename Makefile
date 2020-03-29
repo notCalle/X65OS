@@ -11,7 +11,7 @@ rom.srec: rom.bin
 
 TARGETS += rom.bin
 rom.bin: $(ROMSRC) rom.cfg include/version.i65
-	cl65 -C rom.cfg -t none -o $@ $(ROMSRC)
+	cl65 -m rom.map -C rom.cfg -t none -o $@ $(ROMSRC)
 
 TARGETS += rom.h
 rom.h: rom.bin
