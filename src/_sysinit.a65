@@ -1,7 +1,7 @@
-.include "include/cpu.i65"
-.include "include/syscall.i65"
-.include "include/syszp.i65"
-.include "include/version.i65"
+.include "cpu.i65"
+.include "syscall.i65"
+.include "syszp.i65"
+.include "version.i65"
 .p816
 
 .segment "SYSINIT"

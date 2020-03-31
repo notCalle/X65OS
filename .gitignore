@@ -6,3 +6,5 @@ version.i65
 *.tmp
 rom.h
 *.map
+*.mkdep
+depend.mk

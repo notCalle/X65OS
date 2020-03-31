@@ -3,10 +3,10 @@
 .import __DATA_SIZE__
 .import __BSS_LOAD__
 .import __BSS_SIZE__
-.include "include/cpu.i65"
-.include "include/errno.i65"
-.include "include/_syscall.i65"
-.include "include/syszp.i65"
+.include "cpu.i65"
+.include "errno.i65"
+.include "_syscall.i65"
+.include "syszp.i65"
 .p816
 
 .segment "SYSINIT"

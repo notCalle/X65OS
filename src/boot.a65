@@ -1,4 +1,4 @@
-.include "include/syscall.i65"
+.include "syscall.i65"
 .p816
 
 sectors_per_cluster = 128

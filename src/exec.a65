@@ -1,7 +1,7 @@
 .import _systab
-.include "include/cpu.i65"
-.include "include/errno.i65"
-.include "include/syscall.i65"
+.include "cpu.i65"
+.include "errno.i65"
+.include "syscall.i65"
 .p816
 
 .scope exec
