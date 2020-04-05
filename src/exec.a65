@@ -53,14 +53,17 @@ panic:
 	phy
 	phd
 	phb
+	lda #$0000
+	tcd
 	tsc
-	; These must use far addressing mode, because everything is unknown
-	sta f:$80
+	clc
+	adc #13 ; size of panic frame
+	sta $80
 	lda #$adde
-	sta f:$7a
+	sta $7a
 	lda #$efbe
-	sta f:$7c
+	sta $7c
 	lda #$feca
-	sta f:$7e
+	sta $7e
 	stp
 .endscope
