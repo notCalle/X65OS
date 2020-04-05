@@ -32,11 +32,6 @@ syscall:
 
 .export nmi
 nmi:
-	rti
-
-.export irq
-irq:
-	rti
 
 .export debug
 debug:

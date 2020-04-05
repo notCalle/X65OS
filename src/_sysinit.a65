@@ -13,9 +13,8 @@ version:
 	.byte _major_version
 	.byte "X65OS ROM BIOS "
 	.byte _git_version, 13, 10
-	.asciiz "Copyright (c) 2020 Calle Englund"
+	.byte "Copyright (c) 2020 Calle Englund", 13, 10, 0
 
-.export reset
 reset:
 	sei
 	; Native mode
@@ -78,3 +77,21 @@ loop:
 	bra loop
 
 .endscope
+
+; IRQ handler prologue, must match .struct irq_sf in _irq.i65
+.segment "IRQCODE"
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
+	pha
+	phx
+	phy
+	; Switch to system direct page, saving the current task on stack
+	phd
+	lda #$0000
+	tcd
+	; IRQ event flags
+	pha
+	; IRQ handlers expect A8, I16
+	sep #CPU_M
+	.a8

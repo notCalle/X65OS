@@ -1,11 +1,16 @@
 LD65 = ld65 -m $(@:bin=map)
 CA65 = ca65 -I include
 
+#
+# The ordering of sources matters for many reasons.
+# Especially the SYSINIT and IRQCODE segments contain
+# code that will run back-to-back in the order below
+#
 ROMSRC = src/_sysinit.a65	# MUST BE FIRST
 ROMSRC += src/_systab.a65
 ROMSRC += src/memory.a65
 ROMSRC += src/exec.a65
-ROMSRC += src/task.a65
+ROMSRC += src/task.a65		# MUST BE LAST w/ IRQCODE
 ROMSRC += src/romvec.a65
 
 ROMOBJ = $(ROMSRC:a65=o)

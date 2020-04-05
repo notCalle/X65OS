@@ -150,3 +150,22 @@ await:
 	.a16
 	syserror ENOTIMPLEMENTED
 	sysreturn
+
+; IRQ handler epilogue, must match .struct irq_sf in _irq.i65
+.segment "IRQCODE"
+	rep #CPU_M|CPU_X
+	.a16
+	.i16
+	lda 1,s
+	tay
+	lda a:syszp::wait_head
+	beq @irqdone
+	and #$ff00
+
+@irqdone:
+	pla ; left-over IRQ event flags
+	pld
+	ply
+	plx
+	pla
+	rti

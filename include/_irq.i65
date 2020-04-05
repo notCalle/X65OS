@@ -1,0 +1,11 @@
+.struct irq_sf
+		.byte ; <- s
+evflags	.word
+taskzp	.word
+reg_d	.word
+reg_y	.word
+reg_x	.word
+reg_a	.word
+reg_p	.byte
+rti_pc	.faraddr
+.endstruct
