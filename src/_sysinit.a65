@@ -1,6 +1,7 @@
 .include "cpu.i65"
 .include "syscall.i65"
 .include "syszp.i65"
+.include "taskzp.i65"
 .include "version.i65"
 .p816
 
@@ -69,12 +70,27 @@ task:
 .segment "CODE"
 
 start:
-	rep #CPU_M|CPU_X|CPU_I
 	.a16
 	.i16
-loop:
-	stp				; Should be wai, but we have no interrupt sources yet
-	bra loop
+@again:
+	; This might be a good time to wake up pending tasks on the wait queue
+	; and record runtime statistics
+
+	; BEGIN CRITICAL SECTION
+	; Can't allow any IRQ to run until we WAIt
+	sei
+		lda taskzp::next
+		bne @notalone
+		; next,prev both zero => only task currently running, go to sleep
+		wai
+@notalone:
+	cli
+	; END CRITICAL SECTION
+
+	; No need to yield if we're alone
+	beq @again
+	sys yield
+	bra @again
 
 .endscope
 
