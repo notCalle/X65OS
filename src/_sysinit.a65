@@ -1,4 +1,5 @@
 .include "cpu.i65"
+.include "hw/viab.i65"
 .include "syscall.i65"
 .include "syszp.i65"
 .include "taskzp.i65"
@@ -75,6 +76,21 @@ start:
 @again:
 	; This might be a good time to wake up pending tasks on the wait queue
 	; and record runtime statistics
+
+	sep #CPU_M
+	.a8
+	ldx #2
+	; This loop takes exactly the 16 cycles needed for back-to-back
+	; SPI MOSI operation under PHI2 control (half PHI2 rate).
+@loop:
+	lda version,x
+	beq @done
+	sta viab::mosi
+	inx
+	bra @loop
+@done:
+	rep #CPU_M
+	.a16
 
 	; BEGIN CRITICAL SECTION
 	; Can't allow any IRQ to run until we WAIt
