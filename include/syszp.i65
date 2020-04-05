@@ -9,4 +9,5 @@ runq_head	.byte
 runq_tail	.byte
 wait_head	.byte
 wait_tail	.byte
+tick		.word
 .endstruct

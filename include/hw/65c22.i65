@@ -1,0 +1,161 @@
+.if .definedmacro(__65c22_regs)
+.else
+	.macro __65c22_regs stride
+		;;
+		;; Registers					READ			/		WRITE
+		;;
+		drb 	.byte stride	; 0 Input Register B	/	Output Register B
+		dra 	.byte stride	; 1 Input Register A	/	Output Register A
+		ddrb	.byte stride	; 2 Data Direction Register B
+		ddra	.byte stride	; 3 Data Direction Register A
+		t1cl	.byte stride	; 4 T1 counter LSB		/	T1 latches LSB
+		t1ch	.byte stride	; 5 T1 counter MSB 		/   T1 latches MSB
+		t1ll	.byte stride	; 6 T1 latches LSB
+		t1lh	.byte stride	; 7 T1 latches MSB
+		t2cl	.byte stride	; 8 T2 counter LSB		/ 	T2 latches LSB
+		t2ch	.byte stride	; 9 T2 counter MSB
+		sr		.byte stride	; A Shift register
+		acr		.byte stride	; B Auxillary Control Register
+		pcr		.byte stride	; C Peripheral Control Register
+		ifr		.byte stride	; D Interrupt Flag Register
+		ier		.byte stride	; E Interrupt Enable Register
+		drax	.byte stride	; F I/O Register A without handshake
+	.endmacro
+
+	;;
+	;; 65C22 VIA
+	;;
+	.scope _65c22
+		;;
+		;; Auxillary Control Register
+		;;
+		.scope acr
+			;;
+			;; PA Latch
+			;;
+			.enum pal		;         0
+				disable		= %00000000
+				enable		= %00000001
+				mask		= %00000001
+			.endenum
+
+			;;
+			;; PB Latch
+			;;
+			.enum pbl		;        1
+				disable		= %00000000
+				enable		= %00000010
+				mask		= %00000010
+			.endenum
+
+			;;
+			;; Shift Register Mode Control
+			;;
+			.enum sr		;     432
+				disabled 	= %00000000
+				in_t2 		= %00000100
+				in_phi2		= %00001000
+				in_cb1		= %00001100
+				out_fr_t2	= %00010000
+				out_t2		= %00010100
+				out_phi2	= %00011000
+				out_cb1		= %00011100
+				mask		= %00011100
+			.endenum
+
+			;;
+			;; T2 Timer Control
+			;;
+			.enum t2		;    5
+				one_shot	= %00000000
+				count_pb6	= %00100000
+				mask		= %00100000
+			.endenum
+
+			;;
+			;; T1 Timer Control
+			;;
+			.enum t1		;  76
+				one_shot	= %00000000
+				free_run	= %01000000
+				pb7_enable 	= %10000000
+				mask		= %11000000
+			.endenum
+		.endscope
+
+		;;
+		;; Peripheral Control Register
+		;;
+		.scope pcr
+			;;
+			;; CA1 Control
+			;;
+			.enum ca1		;         0
+				negative	= %00000000
+				positive	= %00000001
+				mask		= %00000001
+			.endenum
+
+			;;
+			;; CA2 Control
+			;;
+			.enum ca2		;      321
+				; Interrupt input mode
+				neg_edge	= %00000000
+				independent = %00000010 ; DRA access does not clear
+				pos_edge	= %00000100
+				; Output modes
+				handshake	= %00001000
+				pulse_out	= %00001010
+				low_out		= %00001100
+				high_out	= %00001110
+				mask		= %00001110
+			.endenum
+
+			;;
+			;; CB1 Control
+			;;
+			.enum cb1		;     4
+				negative	= %00000000
+				positive	= %00010000
+				mask		= %00010000
+			.endenum
+
+			;;
+			;; CB2 Control
+			;;
+			.enum cb2		;  765
+				; Interrupt input mode
+				neg_edge	= %00000000
+				independent = %00100000 ; DRB access does not clear
+				pos_edge	= %01000000
+				; Output modes
+				handshake	= %10000000
+				pulse_out	= %10100000
+				low_out		= %11000000
+				high_out	= %11100000
+				mask		= %11100000
+			.endenum
+		.endscope
+
+		;;
+		;; Interrupt Flag and Control Registers
+		;;
+		.enum intr
+			; IFR/IER sources
+			ca2			= %00000001
+			ca1			= %00000010
+			sr			= %00000100
+			cb2			= %00001000
+			cb1			= %00010000
+			t2			= %00100000
+			t1			= %01000000
+			; IFR combined
+			active		= %10000000
+			; IER bit 7 flags
+			all			= %01111111
+			enable		= %10000000
+			disable		= %00000000
+		.endenum
+	.endscope
+.endif

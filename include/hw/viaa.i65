@@ -7,22 +7,9 @@
 ;
 ; #####################################################################
 
-.struct VIAA
-		.org $00D800	; Read				/	Write
-drb 	.res $10		; Input Register B	/	Output Register B
-dra 	.res $10		; Input Register A	/	Output Register A
-ddrb	.res $10		; Data Direction Register B
-ddra	.res $10		; Data Direction Register A
-t1cl	.res $10		; T1 counter LSB	/	T1 latches LSB
-t1ch	.res $10		; T1 counter MSB (R/W)
-t1ll	.res $10		; T1 latches LSB
-t1lh	.res $10		; T1 latches MSB
-t2cl	.res $10		; T2 counter LSB	/ 	T2 latches LSB
-t2ch	.res $10		; T2 counter MSB
-sr		.res $10		; Shift register
-acr		.res $10		; Auxillary Control Register
-pcr		.res $10		; Peripheral Control Register
-ifr		.res $10		; Interrupt Flag Register
-ier		.res $10		; Interrupe Enable Register
-drax	.res $10		; I/O Register A without handshake
+.include "65c22.i65"
+
+.struct viaa
+	.org $00d800
+	__65c22_regs $10
 .endstruct

@@ -1,0 +1,63 @@
+.include "cpu.i65"
+.include "hw/viab.i65"
+.include "syszp.i65"
+.p816
+
+;; Initalize VIAB registers at RESET
+.segment "SYSINIT"
+	sep #CPU_M
+	.a8
+	; Disable all interrupt sources in case of software reset
+	lda #_65c22::intr::all|_65c22::intr::disable
+	sta viab::ier
+
+	rep #CPU_X
+	.i16
+
+	; Auxillary control register
+	lda #$00
+	; T1 timer control
+	ora #_65c22::acr::t1::free_run
+	; Shift register control for SPI MOSI
+	ora #_65c22::acr::sr::out_phi2
+	sta viab::acr
+
+	; Peripheral control register
+	lda #$00
+	sta viab::pcr
+
+	; Start system tick timer
+	ldx #999 ; FIXME this should be derrived from something
+	stx viab::t1cl
+
+	; Set PB as inputs for SPI MISO
+	stz viab::ddrb
+
+	; Set PA outputs for SPI CS
+	stz viab::drax
+	lda #%00000111
+	sta viab::ddra
+
+	lda #_65c22::intr::t1|_65c22::intr::enable
+	sta viab::ier
+
+
+;; Handle IRQ for VIAB
+.scope viab_irq
+.segment "IRQCODE"
+	.a8
+	.i16
+	bit viab::ifr
+	bpl @skip
+	bvc @skip_t1
+	; T1 timeout, system tick timer
+	inc syszp::tick
+	bne @skip_tick
+	inc syszp::tick+1
+	bne @skip_tick
+@skip_tick:
+	lda #$40
+	sta viab::ifr
+@skip_t1:
+@skip:
+.endscope
