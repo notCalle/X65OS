@@ -8,7 +8,11 @@
 ;
 .export _systab
 _systab:
+	; Memory
 	.addr allocLoBytes
 	.addr allocLoPages
+	; Task
 	.addr async
 	.addr await
+	.addr apoll
+	.addr yield

@@ -55,6 +55,15 @@
 
 	apoll
 
+;; Yield for next runnable task
+;
+; Arguments: 0
+; Returns:
+;	Nothing
+; Errors:
+
+	yield
+
 ; Errors:
 ;	ENOSYSCALL no more syscalls exist
 	__max

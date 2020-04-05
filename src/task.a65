@@ -116,7 +116,7 @@ _enqueue_task:
 	sta syszp::runq_tail
 	sysreturn
 
-; No next or previous task in queue
+; No task in queue
 @empty:
 	.a16
 	.i16
@@ -150,6 +150,41 @@ await:
 	.a16
 	syserror ENOTIMPLEMENTED
 	sysreturn
+
+.export apoll
+apoll:
+	.a16
+	syserror ENOTIMPLEMENTED
+	sysreturn
+
+.export yield
+yield:
+	.a16
+	.i16
+	; START CRITICAL SECTION
+	; FIXME: First enqueue ready tasks from waitq
+	; Pull current task DP from stack
+	plx
+	txa
+	xba
+	sep #CPU_M
+	.a8
+	cmp syszp::runq_tail
+	bne @dequeue
+	; Yielding for self is a noop
+	phx
+	sysreturn
+
+@dequeue:
+	lda taskzp::next,x
+	sta syszp::runq_head
+	rep #CPU_M
+	.a16
+	xba
+	and #$ff00
+	; Push next task DP onto stack
+	pha
+	jmp async::_enqueue_task
 
 ; IRQ handler epilogue, must match .struct irq_sf in _irq.i65
 .segment "IRQCODE"
