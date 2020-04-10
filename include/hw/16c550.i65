@@ -1,0 +1,24 @@
+.if .definedmacro(__16c550_regs)
+.else
+	.macro __16c550_regs stride
+		;;
+		;; Registers					READ			/		WRITE
+		;;
+		xhr 	.byte stride	; 0 Receive Holding		/	Transmit Holding
+		ier		.byte stride	; 1 			Interrupt Enable
+		isr		.byte stride	; 2 Interrupt Status	/
+		.org 	isr
+		fcr		.byte stride	; 2						/	FIFO Control
+		lcr		.byte stride	; 3				  Line Control
+		mcr		.byte stride	; 4				  Modem Control
+		lsr		.byte stride	; 5	Line Status			/
+		msr		.byte stride	; 6 Modem Status		/
+		spr		.byte stride	; 7 				Scratchpad
+		;
+		; Register overlay when LCR[7] = 1
+		;
+		.org	0
+		dll		.byte stride	; 0				Divisor Latch LSB
+		dlm		.byte stride	; 1				Divisor Latch MSB
+	.endmacro
+.endif

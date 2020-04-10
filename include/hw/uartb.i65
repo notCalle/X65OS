@@ -1,0 +1,15 @@
+; #####################################################################
+;
+; 15C2552 UART Channel A
+;
+; Base address is $00DD00, and registers are spaced $10 apart,
+; allowing for burst mode transfers using MVN/MVP
+;
+; #####################################################################
+
+.include "16c550.i65"
+
+.struct uartb
+	.org $00dc00
+	__16c550_regs $10
+.endstruct
