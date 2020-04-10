@@ -64,6 +64,38 @@
 
 	yield
 
+;; Load a file //FS{/DIR}*/NAME.EXT
+;
+; Arguments:
+;	pointer to URI
+;
+; Returns:
+;	C = pointer to file base address
+;
+; Errors:
+;	ENOTFOUND
+
+	fload
+
+;; Output a character
+;
+; Arguments:
+;	character
+;	device base
+
+	putc
+
+;; Input a character
+;
+; Arguments:
+;	device base
+;
+; Returns:
+;	A = character
+
+	getc
+
+;; End of syscall table
 ; Errors:
 ;	ENOSYSCALL no more syscalls exist
 	__max

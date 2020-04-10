@@ -1,0 +1,6 @@
+.struct romfs_dirent
+name	.byte 11	; 8.3 filename
+		.byte		; reserved, must be zero
+base	.addr		; base address
+init	.addr		; init subroutine, if not zero
+.endstruct ; 16 bytes

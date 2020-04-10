@@ -12,6 +12,8 @@ ROMSRC += src/viab.a65
 ROMSRC += src/memory.a65
 ROMSRC += src/exec.a65
 ROMSRC += src/task.a65		# MUST BE LAST w/ IRQCODE
+ROMSRC += src/filesys.a65
+ROMSRC += src/romfs.a65
 ROMSRC += src/romvec.a65
 
 ROMOBJ = $(ROMSRC:a65=o)

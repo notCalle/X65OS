@@ -1,0 +1,87 @@
+.import __ROMFS_RUN__
+.import __ROMFS_SIZE__
+.include "cpu.i65"
+.include "errno.i65"
+.include "_syscall.i65"
+.include "romfs.i65"
+.p816
+
+.segment "ROMFS"
+
+.scope romfs_open
+.struct sf
+		.byte
+dirent	.byte
+		.tag syscall_sf
+name	.addr
+.endstruct
+
+.segment "RODATA"
+.export romfs_name
+romfs_name:
+	.asciiz "ROM"
+
+.segment "CODE"
+;; Find and load NAME.EXT under //ROM/
+;
+; Arguments:
+;	pointer to file part of URI
+;
+; Returns:
+;	C = file base pointer
+;
+; Errors:
+;	ENOTFOUND
+.export romfs_load
+romfs_load:
+	.a16
+	.i16
+	cli
+	; First directory entry
+	lda #__ROMFS_RUN__
+	pha
+@tryagain:
+	clc
+	adc #10
+	tax
+	sep #CPU_M
+	.a8
+		ldy #10
+@loop:
+		lda $0,x
+		cmp (sf::name,s),y
+		bne @next
+		dex
+		dey
+		bpl @loop
+		bra @found
+@next:
+	rep #CPU_M
+	.a16
+	lda sf::dirent,s
+	clc
+	adc #16
+	cmp #__ROMFS_RUN__+__ROMFS_SIZE__-1
+	bpl @enotfound
+	sta sf::dirent,s
+	bra @tryagain
+
+@found:
+	rep #CPU_M
+	.a16
+	plx
+	lda romfs_dirent::base,x
+	ldy romfs_dirent::init,x
+	beq @noinit
+	; jsr y
+	per @noinit-1
+	dey
+	phy
+	rts
+@noinit:
+	sysreturn
+
+@enotfound:
+	pla
+	syserror ENOTFOUND
+.endscope

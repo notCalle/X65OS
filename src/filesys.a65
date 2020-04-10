@@ -1,0 +1,82 @@
+.import romfs_name
+.import romfs_load
+.include "_syscall.i65"
+.p816
+
+.scope fopen
+.struct sf
+		.tag syscall_sf
+name	.addr
+.endstruct
+
+.segment "RODATA"
+
+fstab:
+	.addr romfs_name
+	.addr romfs_load
+	.word 0
+
+.segment "CODE"
+
+;; Load a file //FSTYPE{/DIR}*/NAME.EXT
+; FIXME: Hard coded for //ROM/NAME.EXT
+;
+; Arguments:
+;	pointer to URI
+;
+; Returns:
+;	C = pointer to file base address
+;
+; Errors:
+;	ENOTFOUND
+;
+.export fload
+fload:
+	.a16
+	.i16
+	lda sf::name,s
+	clc
+	adc #6
+	sta sf::name,s
+	jmp romfs_load
+.endscope
+
+.scope putc
+.struct sf
+		.tag syscall_sf
+char	.word
+device	.addr
+.endstruct
+
+;; Output a character
+;
+; Arguments:
+;	character
+;	device base
+.export putc
+putc:
+	.a16
+	.i16
+	lda sf::device,s
+	tax
+	jmp ($0,x)
+.endscope
+
+.scope getc
+.struct sf
+		.tag syscall_sf
+device	.addr
+.endstruct
+
+;; Input a character
+;
+; Arguments:
+;	device base
+.export getc
+getc:
+	.a16
+	.i16
+	lda sf::device,s
+	tax
+	jmp ($2,x)
+.endscope

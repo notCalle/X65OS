@@ -16,3 +16,8 @@ _systab:
 	.addr await
 	.addr apoll
 	.addr yield
+	; File
+	.addr fload
+	; I/O
+	.addr putc
+	.addr getc
