@@ -1,5 +1,4 @@
 .include "cpu.i65"
-.include "hw/viab.i65"
 .include "syscall.i65"
 .include "syszp.i65"
 .include "taskzp.i65"
@@ -68,29 +67,50 @@ task:
 	.byte %00000000			; starting P
 	.faraddr start			; starting PB:PC
 
+consname:
+	.asciiz "//ROM/CONSOLE DEV"
+
+.struct zp
+		.tag taskzp
+save_x	.word
+.endstruct
+
 .segment "CODE"
 
 start:
 	.a16
 	.i16
-@again:
-	; This might be a good time to wake up pending tasks on the wait queue
-	; and record runtime statistics
+	pea consname
+	sys fload, 1
+	bcs error
+	; Save console device base on stack
+	pha
 
+	; Skip binary version number
+	ldx #2
+@loop:
 	sep #CPU_M
 	.a8
-	ldx #2
-	; This loop takes exactly the 16 cycles needed for back-to-back
-	; SPI MOSI operation under PHI2 control (half PHI2 rate).
-@loop:
 	lda version,x
 	beq @done
-	sta viab::mosi
+	pha
+	pha
+	stx zp::save_x
+	sys putc,1
+	bcs error
+	.a16
+	ldx zp::save_x
 	inx
 	bra @loop
 @done:
 	rep #CPU_M
 	.a16
+	; Pull device load address
+	plx
+
+@again:
+	; This might be a good time to wake up pending tasks on the wait queue
+	; and record runtime statistics
 
 	; BEGIN CRITICAL SECTION
 	; Can't allow any IRQ to run until we WAIt
@@ -107,6 +127,9 @@ start:
 	beq @again
 	sys yield
 	bra @again
+
+error:
+	brk
 
 .endscope
 
