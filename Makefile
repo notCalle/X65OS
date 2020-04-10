@@ -9,6 +9,7 @@ CA65 = ca65 -I include
 ROMSRC = src/_sysinit.a65	# MUST BE FIRST
 ROMSRC += src/_systab.a65
 ROMSRC += src/viab.a65
+ROMSRC += src/console.a65
 ROMSRC += src/memory.a65
 ROMSRC += src/exec.a65
 ROMSRC += src/task.a65		# MUST BE LAST w/ IRQCODE

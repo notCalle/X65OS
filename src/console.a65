@@ -1,0 +1,52 @@
+.include "cpu.i65"
+.include "errno.i65"
+.include "_syscall.i65"
+.include "hw/uarta.i65"
+.include "syszp.i65"
+.p816
+
+.segment "ROMFS"
+; ROM FS directory block
+	.byte "CONSOLE DEV"		; name, 8.3 chars
+	.byte 0
+	.addr console_base
+	.word 0
+
+.segment "CODE"
+
+.scope cout
+.struct sf
+		.tag syscall_sf
+char	.byte
+		.byte ; filler
+.endstruct
+
+;; Output a character
+;
+; Arguments:
+;	character
+call:
+	sep #CPU_M
+	lda sf::char,s
+	sta uarta::xhr
+	sysreturn
+.endscope
+
+.scope cin
+;; Input a character
+;
+; Returns:
+; 	A8 = character
+;
+; Error:
+;	Carry set if no character available
+call:
+	syserror ENOTIMPLEMENTED
+	sysreturn
+.endscope
+
+.segment "DATA"
+
+console_base:
+	.addr cout::call
+	.addr cin::call
